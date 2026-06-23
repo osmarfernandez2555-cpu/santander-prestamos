@@ -1,257 +1,258 @@
 const puppeteer = require('puppeteer');
 
-const URL_BASE = 'https://supermovilidad.com.ar/cars-inventory/detail/fdbe017c-e481-4916-9222-4ad8ca7086dc';
+// URL directa al simulador - evita tener que navegar y hacer click
+const SIMULATION_URL = (vehicleId) => 
+  `https://supermovilidad.com.ar/simulation/?interestedVehicle=${vehicleId}&vehicleType=car`;
 
-async function simularCredito(cliente) {
-  const browser = await puppeteer.launch({
+const VEHICLE_ID = 'fdbe017c-e481-4916-9222-4ad8ca7086dc';
+
+async function getBrowser() {
+  return puppeteer.launch({
     headless: 'new',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
-      '--window-size=1280,800'
-    ]
+      '--disable-blink-features=AutomationControlled',
+      '--window-size=1280,900'
+    ],
+    defaultViewport: { width: 1280, height: 900 }
+  });
+}
+
+async function typeInField(page, selector, value) {
+  const el = await page.$(selector);
+  if (!el) return false;
+  await el.click({ clickCount: 3 });
+  await el.press('Backspace');
+  await el.type(String(value), { delay: 40 });
+  return true;
+}
+
+async function waitForReact(page) {
+  // Esperar que React hidrate y desaparezca el "Cargando..."
+  await page.waitForFunction(
+    () => !document.body.innerText.includes('Cargando...'),
+    { timeout: 15000 }
+  );
+  await new Promise(r => setTimeout(r, 1000));
+}
+
+async function simularCredito(cliente) {
+  const browser = await getBrowser();
+  const page = await browser.newPage();
+
+  await page.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+  );
+
+  // Ocultar que es Puppeteer
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
   });
 
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1280, height: 800 });
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-
   try {
-    console.log(`[${cliente.nombre}] Abriendo página...`);
-    await page.goto(URL_BASE, { waitUntil: 'networkidle2', timeout: 30000 });
+    // === PASO 1: Ir directo al simulador ===
+    console.log(`[${cliente.nombre}] Abriendo simulador...`);
+    await page.goto(SIMULATION_URL(VEHICLE_ID), { waitUntil: 'networkidle0', timeout: 30000 });
 
-    // Buscar botón de simular crédito/préstamo
-    console.log(`[${cliente.nombre}] Buscando botón de simulación...`);
-    await page.waitForTimeout(2000);
+    // Esperar que React hidrate el formulario
+    await waitForReact(page);
+    console.log(`[${cliente.nombre}] Formulario cargado`);
 
-    // Intentar hacer click en el botón de simular
-    const botonSimular = await page.evaluate(() => {
-      const botones = Array.from(document.querySelectorAll('button, a'));
-      const boton = botones.find(b => 
-        b.textContent.toLowerCase().includes('simul') || 
-        b.textContent.toLowerCase().includes('crédito') ||
-        b.textContent.toLowerCase().includes('financ') ||
-        b.textContent.toLowerCase().includes('préstamo') ||
-        b.textContent.toLowerCase().includes('cuota')
-      );
-      if (boton) {
-        boton.click();
-        return boton.textContent.trim();
-      }
-      return null;
-    });
+    // Screenshot del estado inicial
+    const ss0 = await page.screenshot({ encoding: 'base64' });
 
-    if (!botonSimular) {
-      // Buscar por links también
-      await page.evaluate(() => {
-        const links = Array.from(document.querySelectorAll('a[href*="simul"], a[href*="credito"], a[href*="financ"]'));
-        if (links[0]) links[0].click();
-      });
-    }
-
-    await page.waitForTimeout(3000);
-
-    // === PASO 1: COMPLETAR DATOS PERSONALES ===
-    console.log(`[${cliente.nombre}] Completando datos personales...`);
-
-    // Esperar que aparezca el formulario
-    try {
-      await page.waitForSelector('input[name*="nombre"], input[placeholder*="nombre"], input[id*="nombre"]', { timeout: 10000 });
-    } catch (e) {
-      // Intentar buscar cualquier input visible
-      await page.waitForSelector('input[type="text"]', { timeout: 10000 });
-    }
-
-    // Limpiar y completar Nombre
-    const campoNombre = await page.$('input[name*="nombre"], input[placeholder*="nombre"], input[id*="nombre"], input[aria-label*="ombre"]');
-    if (campoNombre) {
-      await campoNombre.click({ clickCount: 3 });
-      await campoNombre.type(cliente.nombre, { delay: 50 });
-    }
+    // === PASO 2: Completar datos personales ===
+    // Nombre - buscar por label o placeholder
+    const inputNombre = await page.waitForSelector(
+      'input[autocomplete="given-name"], input[name="firstName"], input[id*="nombre" i], input[placeholder*="Nombre" i], input[aria-label*="ombre" i]',
+      { timeout: 10000 }
+    );
+    await inputNombre.click({ clickCount: 3 });
+    await inputNombre.type(cliente.nombre, { delay: 40 });
 
     // Apellido
-    const campoApellido = await page.$('input[name*="apellido"], input[placeholder*="apellido"], input[id*="apellido"]');
-    if (campoApellido) {
-      await campoApellido.click({ clickCount: 3 });
-      await campoApellido.type(cliente.apellido, { delay: 50 });
-    }
+    await typeInField(page,
+      'input[autocomplete="family-name"], input[name="lastName"], input[id*="apellido" i], input[placeholder*="Apellido" i]',
+      cliente.apellido
+    );
 
     // DNI
-    const campoDNI = await page.$('input[name*="dni"], input[placeholder*="dni"], input[id*="dni"], input[name*="documento"]');
-    if (campoDNI) {
-      await campoDNI.click({ clickCount: 3 });
-      await campoDNI.type(cliente.dni, { delay: 50 });
-    }
+    await typeInField(page,
+      'input[name*="dni" i], input[id*="dni" i], input[placeholder*="DNI" i], input[inputmode="numeric"][maxlength="8"], input[inputmode="numeric"][maxlength="9"]',
+      cliente.dni
+    );
 
-    // Género - seleccionar según el cliente
+    // Género - radio buttons
     const genero = (cliente.genero || 'masculino').toLowerCase();
-    await page.evaluate((genero) => {
+    const generoTexto = genero.includes('fem') ? 'Femenino' : genero.includes('bin') ? 'no binario' : 'Masculino';
+    
+    await page.evaluate((texto) => {
+      // Buscar radio por texto del label
+      const labels = Array.from(document.querySelectorAll('label'));
+      for (const label of labels) {
+        if (label.textContent.trim().toLowerCase() === texto.toLowerCase()) {
+          const input = label.querySelector('input[type="radio"]') ||
+            document.getElementById(label.getAttribute('for'));
+          if (input) { input.click(); return true; }
+        }
+      }
+      // Buscar radio por value
       const radios = Array.from(document.querySelectorAll('input[type="radio"]'));
-      const radioGenero = radios.find(r => {
-        const label = r.closest('label') || document.querySelector(`label[for="${r.id}"]`);
-        return label && label.textContent.toLowerCase().includes(genero.substring(0, 4));
-      });
-      if (radioGenero) radioGenero.click();
-    }, genero);
+      const radio = radios.find(r => r.value.toLowerCase().includes(texto.substring(0, 4).toLowerCase()));
+      if (radio) radio.click();
+    }, generoTexto);
 
-    // Cód. Área (ya viene completado pero por si acaso)
-    const campoArea = await page.$('input[name*="area"], input[placeholder*="área"], input[id*="area"], input[name*="cod"]');
-    if (campoArea) {
-      const val = await page.evaluate(el => el.value, campoArea);
-      if (!val) {
-        await campoArea.click({ clickCount: 3 });
-        await campoArea.type(cliente.codArea || '351', { delay: 50 });
+    // Cod área (si está vacío)
+    const areaCampo = await page.$('input[name*="area" i], input[id*="area" i], input[placeholder*="área" i], input[placeholder*="Código" i]');
+    if (areaCampo) {
+      const val = await page.evaluate(el => el.value, areaCampo);
+      if (!val || val === '') {
+        await areaCampo.click({ clickCount: 3 });
+        await areaCampo.type(cliente.codArea || '351', { delay: 40 });
       }
     }
 
-    // Teléfono
-    const campoTel = await page.$('input[name*="telefono"], input[name*="phone"], input[placeholder*="teléfono"], input[id*="telefono"]');
-    if (campoTel) {
-      const val = await page.evaluate(el => el.value, campoTel);
-      if (!val) {
-        await campoTel.click({ clickCount: 3 });
-        await campoTel.type(cliente.telefono || '4415138', { delay: 50 });
+    // Teléfono (si está vacío)
+    const telCampo = await page.$('input[name*="phone" i], input[name*="telefono" i], input[id*="telefono" i], input[placeholder*="teléfono" i], input[placeholder*="Número" i]');
+    if (telCampo) {
+      const val = await page.evaluate(el => el.value, telCampo);
+      if (!val || val === '') {
+        await telCampo.click({ clickCount: 3 });
+        await telCampo.type(cliente.telefono || '4415138', { delay: 40 });
       }
     }
 
     // Email
-    const campoEmail = await page.$('input[type="email"], input[name*="email"], input[placeholder*="mail"]');
-    if (campoEmail) {
-      await campoEmail.click({ clickCount: 3 });
-      await campoEmail.type(cliente.email || 'consulta@tutuautomotores.com', { delay: 50 });
-    }
+    await typeInField(page,
+      'input[type="email"], input[name*="email" i], input[id*="email" i], input[placeholder*="mail" i]',
+      cliente.email || 'consulta@tutuautomotores.com'
+    );
 
-    // Aceptar términos y condiciones
+    // Aceptar términos
     await page.evaluate(() => {
-      const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
-      checkboxes.forEach(cb => { if (!cb.checked) cb.click(); });
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        if (!cb.checked) cb.click();
+      });
     });
 
-    await page.waitForTimeout(500);
+    await new Promise(r => setTimeout(r, 500));
 
     // Click en "Confirmá sólo para simular"
-    console.log(`[${cliente.nombre}] Haciendo click en simular...`);
-    const clickado = await page.evaluate(() => {
-      const botones = Array.from(document.querySelectorAll('button, input[type="submit"], a'));
-      const boton = botones.find(b => 
-        b.textContent.toLowerCase().includes('solo para simular') ||
-        b.textContent.toLowerCase().includes('sólo para simular') ||
-        b.textContent.toLowerCase().includes('solo simular')
-      );
-      if (boton) { boton.click(); return true; }
-      
-      // Si no encuentra ese botón, busca cualquier botón de continuar/confirmar
-      const botonContinuar = botones.find(b => 
-        b.textContent.toLowerCase().includes('continuar') ||
-        b.textContent.toLowerCase().includes('confirmar') ||
-        b.textContent.toLowerCase().includes('siguiente')
-      );
-      if (botonContinuar) { botonContinuar.click(); return true; }
-      return false;
+    const clickSimular = await page.evaluate(() => {
+      const all = Array.from(document.querySelectorAll('button, [role="button"]'));
+      const btn = all.find(b => {
+        const t = b.textContent.toLowerCase();
+        return t.includes('solo para simular') || t.includes('sólo para simular') || t.includes('solo simular');
+      });
+      if (btn) { btn.click(); return btn.textContent.trim(); }
+
+      // Fallback: segundo botón de la fila (el primero es "ser contactado")
+      const btns = all.filter(b => b.textContent.toLowerCase().includes('simul'));
+      if (btns.length > 0) { btns[btns.length - 1].click(); return btns[btns.length - 1].textContent.trim(); }
+      return null;
     });
 
-    if (!clickado) {
-      throw new Error('No se encontró botón de simulación');
+    console.log(`[${cliente.nombre}] Botón clickeado: ${clickSimular || 'no encontrado'}`);
+
+    if (!clickSimular) {
+      const ss = await page.screenshot({ encoding: 'base64' });
+      throw new Error('No se encontró botón "Confirmá sólo para simular"');
     }
 
-    // === PASO 2: COMPLETAR INGRESOS ===
+    // === PASO 3: Esperar y completar ingresos ===
     console.log(`[${cliente.nombre}] Esperando paso de ingresos...`);
-    await page.waitForTimeout(3000);
-
-    // Completar ingresos con 10.000.000
-    const campoIngresos = await page.$('input[name*="ingreso"], input[placeholder*="ingreso"], input[id*="ingreso"]');
-    if (campoIngresos) {
-      await campoIngresos.click({ clickCount: 3 });
-      await campoIngresos.type('10000000', { delay: 50 });
+    
+    // Esperar que aparezca campo de ingresos
+    try {
+      await page.waitForSelector(
+        'input[name*="ingreso" i], input[id*="ingreso" i], input[placeholder*="ingreso" i]',
+        { timeout: 10000 }
+      );
+    } catch (e) {
+      // Si no aparece campo de ingresos, capturar el estado actual
+      const ss = await page.screenshot({ encoding: 'base64' });
+      const texto = await page.evaluate(() => document.body.innerText.substring(0, 1000));
+      console.log(`[${cliente.nombre}] Texto actual:`, texto.substring(0, 200));
+      throw new Error('No apareció el campo de ingresos. Puede haber cambio en el flujo.');
     }
 
-    // Relación de dependencia: SI
+    await typeInField(page,
+      'input[name*="ingreso" i], input[id*="ingreso" i], input[placeholder*="ingreso" i]',
+      '10000000'
+    );
+
+    // Relación de dependencia: SÍ
     await page.evaluate(() => {
+      const labels = Array.from(document.querySelectorAll('label'));
+      // Buscar el label "Sí" dentro del contexto de relación de dependencia
+      for (const label of labels) {
+        const texto = label.textContent.trim();
+        if (texto === 'Sí' || texto === 'Si') {
+          const input = label.querySelector('input[type="radio"]') ||
+            document.getElementById(label.getAttribute('for'));
+          if (input) { input.click(); return; }
+        }
+      }
+      // Fallback: primer radio Sí que encuentre
       const radios = Array.from(document.querySelectorAll('input[type="radio"]'));
       const radioSi = radios.find(r => {
-        const label = r.closest('label') || document.querySelector(`label[for="${r.id}"]`);
-        return label && (label.textContent.trim() === 'Sí' || label.textContent.trim() === 'Si');
+        const lbl = r.closest('label') || document.querySelector(`label[for="${r.id}"]`);
+        return lbl && (lbl.textContent.trim() === 'Sí' || lbl.textContent.trim() === 'Si');
       });
       if (radioSi) radioSi.click();
     });
 
-    await page.waitForTimeout(500);
+    await new Promise(r => setTimeout(r, 300));
 
-    // Cotitular: NO (ya viene seleccionado pero confirmar)
+    // Click continuar
     await page.evaluate(() => {
-      const radios = Array.from(document.querySelectorAll('input[type="radio"]'));
-      // Buscar específicamente el radio de "No" para cotitular
-      const labels = Array.from(document.querySelectorAll('label'));
-      const labelCotitular = labels.find(l => l.textContent.toLowerCase().includes('cotitular'));
-      if (labelCotitular) {
-        const container = labelCotitular.closest('div, section, form');
-        if (container) {
-          const radioNo = Array.from(container.querySelectorAll('input[type="radio"]')).find(r => {
-            const lbl = r.closest('label') || document.querySelector(`label[for="${r.id}"]`);
-            return lbl && lbl.textContent.trim() === 'No';
-          });
-          if (radioNo) radioNo.click();
-        }
-      }
+      const btns = Array.from(document.querySelectorAll('button, [role="button"]'));
+      const btn = btns.find(b => {
+        const t = b.textContent.toLowerCase();
+        return t.includes('continuar') || t.includes('calcular') || t.includes('siguiente') || t.includes('simular');
+      });
+      if (btn) btn.click();
     });
 
-    await page.waitForTimeout(500);
+    // === PASO 4: Capturar resultado ===
+    console.log(`[${cliente.nombre}] Esperando resultado final...`);
+    await new Promise(r => setTimeout(r, 6000));
 
-    // Click en Continuar
-    console.log(`[${cliente.nombre}] Continuando...`);
-    await page.evaluate(() => {
-      const botones = Array.from(document.querySelectorAll('button, input[type="submit"]'));
-      const boton = botones.find(b => 
-        b.textContent.toLowerCase().includes('continuar') ||
-        b.textContent.toLowerCase().includes('calcular') ||
-        b.textContent.toLowerCase().includes('simular') ||
-        b.textContent.toLowerCase().includes('siguiente')
-      );
-      if (boton) boton.click();
-    });
+    const ss_final = await page.screenshot({ encoding: 'base64', fullPage: true });
 
-    // === PASO 3: CAPTURAR RESULTADO ===
-    console.log(`[${cliente.nombre}] Esperando resultado...`);
-    await page.waitForTimeout(5000);
-
-    // Capturar el monto del resultado
     const resultado = await page.evaluate(() => {
-      const body = document.body.innerText;
-      
-      // Buscar patrones de monto: $X.XXX.XXX o similar
+      const texto = document.body.innerText;
+      const montos = [];
+
+      // Patrones argentinos: $ 12.000.000 / $12.000.000 / 12.000.000 pesos
       const patrones = [
-        /\$\s*[\d.,]+/g,
-        /prestamos?\s+hasta\s+\$?\s*[\d.,]+/gi,
-        /monto\s*:?\s*\$?\s*[\d.,]+/gi,
-        /[\d.,]+\s*pesos/gi,
+        /\$\s*[\d]{1,3}(?:[.,]\d{3})+/g,
+        /[\d]{1,3}(?:\.\d{3})+(?:,\d{2})?\s*(?:pesos)?/g,
         /hasta\s+\$?\s*[\d.,]+/gi,
-        /te\s+prestamos?\s+\$?\s*[\d.,]+/gi,
-        /crédito\s+de\s+\$?\s*[\d.,]+/gi,
-        /financiamos?\s+\$?\s*[\d.,]+/gi
+        /prestamos?\s+\$?\s*[\d.,]+/gi,
+        /monto[^:]*:\s*\$?\s*[\d.,]+/gi,
+        /financiamos?\s+hasta\s+\$?\s*[\d.,]+/gi,
       ];
 
-      const montos = [];
-      for (const patron of patrones) {
-        const matches = body.match(patron);
-        if (matches) montos.push(...matches);
+      for (const pat of patrones) {
+        const matches = texto.match(pat);
+        if (matches) montos.push(...matches.map(m => m.trim()));
       }
 
-      // También buscar elementos con clases relacionadas a precio/monto
-      const elemMontos = document.querySelectorAll('[class*="monto"], [class*="precio"], [class*="amount"], [class*="valor"], [class*="total"], [class*="credito"]');
-      elemMontos.forEach(el => {
-        if (el.textContent.trim()) montos.push(el.textContent.trim());
+      // Buscar en elementos con clases de precio/monto
+      document.querySelectorAll('[class*="amount" i], [class*="monto" i], [class*="price" i], [class*="total" i], [class*="valor" i], [class*="credito" i], [class*="result" i], h2, h3').forEach(el => {
+        const t = el.textContent.trim();
+        if (t.match(/\$/) && t.length < 100) montos.push(t);
       });
 
       return {
-        montos: montos.slice(0, 10),
-        textoCompleto: body.substring(0, 2000)
+        montos: [...new Set(montos)].slice(0, 15),
+        textoCompleto: texto.substring(0, 3000)
       };
     });
-
-    // Screenshot para debug
-    const screenshot = await page.screenshot({ encoding: 'base64', fullPage: false });
 
     await browser.close();
 
@@ -259,23 +260,19 @@ async function simularCredito(cliente) {
       exito: true,
       montos: resultado.montos,
       textoResultado: resultado.textoCompleto,
-      screenshot: `data:image/png;base64,${screenshot}`
+      screenshot: `data:image/png;base64,${ss_final}`,
+      screenshotInicio: `data:image/png;base64,${ss0}`
     };
 
   } catch (error) {
-    console.error(`[${cliente.nombre}] Error:`, error.message);
-    
-    let screenshot = null;
-    try {
-      screenshot = await page.screenshot({ encoding: 'base64' });
-    } catch (e) {}
-    
+    console.error(`[${cliente.nombre}] ERROR:`, error.message);
+    let ss = null;
+    try { ss = await page.screenshot({ encoding: 'base64', fullPage: false }); } catch(e) {}
     await browser.close();
-    
     return {
       exito: false,
       error: error.message,
-      screenshot: screenshot ? `data:image/png;base64,${screenshot}` : null
+      screenshot: ss ? `data:image/png;base64,${ss}` : null
     };
   }
 }
