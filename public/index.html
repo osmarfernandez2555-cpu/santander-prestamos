@@ -6,360 +6,93 @@
 <title>Tutu · Verificador Santander</title>
 <style>
   :root {
-    --azul: #0179D0;
-    --azul-oscuro: #005fa3;
-    --rojo: #e63946;
-    --verde: #2dc653;
-    --amarillo: #f4a261;
-    --gris: #f5f7fa;
-    --gris-borde: #dde1e7;
-    --texto: #1a1a2e;
-    --blanco: #ffffff;
+    --azul: #0179D0; --azul-dark: #005fa3; --verde: #2dc653;
+    --rojo: #e63946; --gris: #f5f7fa; --borde: #dde1e7;
+    --texto: #1a1a2e; --blanco: #fff;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--gris);
-    color: var(--texto);
-    min-height: 100vh;
-  }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--gris); color: var(--texto); }
 
   header {
-    background: var(--azul);
-    color: white;
-    padding: 16px 32px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    background: var(--azul); color: white; padding: 14px 28px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
   }
+  header h1 { font-size: 1.25rem; }
+  header span { font-size: .8rem; opacity: .8; }
+  .badge { margin-left: auto; background: var(--verde); color: white; padding: 3px 12px; border-radius: 20px; font-size: .75rem; font-weight: 600; }
 
-  header h1 { font-size: 1.4rem; font-weight: 700; }
-  header span { font-size: 0.85rem; opacity: 0.85; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px 14px; }
 
-  .badge-online {
-    margin-left: auto;
-    background: var(--verde);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
+  .panel { background: white; border-radius: 10px; border: 1px solid var(--borde); margin-bottom: 20px; overflow: hidden; }
+  .panel-header { background: var(--azul); color: white; padding: 12px 18px; font-weight: 600; font-size: .9rem; }
+  .panel-body { padding: 18px; }
+
+  .info-box {
+    background: #e8f4fd; border: 1px solid #b3d9f7; border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 14px; font-size: .85rem; color: #0a5c99; line-height: 1.6;
   }
-
-  .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
-
-  .panel {
-    background: white;
-    border-radius: 12px;
-    border: 1px solid var(--gris-borde);
-    margin-bottom: 24px;
-    overflow: hidden;
-  }
-
-  .panel-header {
-    background: var(--azul);
-    color: white;
-    padding: 14px 20px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .panel-body { padding: 20px; }
-
-  /* CARGA DE CLIENTES */
-  .instrucciones {
-    background: #e8f4fd;
-    border: 1px solid #b3d9f7;
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin-bottom: 16px;
-    font-size: 0.88rem;
-    color: #0a5c99;
-  }
-
-  .instrucciones code {
-    background: #cce7f7;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: 0.85em;
-  }
+  .info-box code { background: #cce7f7; padding: 1px 5px; border-radius: 3px; font-size: .82em; }
 
   textarea {
-    width: 100%;
-    height: 200px;
-    border: 1.5px solid var(--gris-borde);
-    border-radius: 8px;
-    padding: 12px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.85rem;
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.2s;
+    width: 100%; height: 160px; border: 1.5px solid var(--borde); border-radius: 8px;
+    padding: 10px; font-family: monospace; font-size: .85rem; resize: vertical; outline: none;
+    transition: border-color .2s;
   }
-
   textarea:focus { border-color: var(--azul); }
 
-  .fila-botones {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-  }
+  .fila { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 
   .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    padding: 9px 18px; border: none; border-radius: 8px; font-size: .88rem;
+    font-weight: 600; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 5px;
   }
-
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
   .btn-primary { background: var(--azul); color: white; }
-  .btn-primary:hover:not(:disabled) { background: var(--azul-oscuro); }
+  .btn-primary:hover:not(:disabled) { background: var(--azul-dark); }
+  .btn-sec { background: var(--gris); color: var(--texto); border: 1px solid var(--borde); }
+  .btn-sec:hover:not(:disabled) { background: #e0e4ea; }
+  .btn-red { background: var(--rojo); color: white; }
+  .btn-red:hover:not(:disabled) { background: #c1121f; }
 
-  .btn-secundario { background: var(--gris); color: var(--texto); border: 1px solid var(--gris-borde); }
-  .btn-secundario:hover:not(:disabled) { background: #e0e4ea; }
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat { flex: 1; min-width: 100px; background: var(--gris); border-radius: 8px; padding: 12px; text-align: center; border: 1px solid var(--borde); }
+  .stat .n { font-size: 1.8rem; font-weight: 700; color: var(--azul); line-height: 1; }
+  .stat .l { font-size: .72rem; color: #666; margin-top: 3px; }
 
-  .btn-danger { background: var(--rojo); color: white; }
-  .btn-danger:hover:not(:disabled) { background: #c1121f; }
+  .procesando { display: none; align-items: center; gap: 8px; color: var(--azul); font-size: .85rem; font-weight: 600; padding: 8px 0; }
+  .procesando.on { display: flex; }
 
-  /* ESTADO DE COLA */
-  .estado-cola {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .stat-card {
-    flex: 1;
-    min-width: 120px;
-    background: var(--gris);
-    border-radius: 8px;
-    padding: 14px;
-    text-align: center;
-    border: 1px solid var(--gris-borde);
-  }
-
-  .stat-card .numero {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--azul);
-    line-height: 1;
-  }
-
-  .stat-card .label {
-    font-size: 0.75rem;
-    color: #666;
-    margin-top: 4px;
-  }
-
-  /* TABLA DE RESULTADOS */
-  .tabla-container { overflow-x: auto; }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.88rem;
-  }
-
-  thead tr {
-    background: var(--azul);
-    color: white;
-  }
-
-  thead th {
-    padding: 12px 14px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 0.82rem;
-    white-space: nowrap;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid var(--gris-borde);
-    transition: background 0.15s;
-  }
-
-  tbody tr:hover { background: #f0f7ff; }
-
-  tbody td { padding: 12px 14px; vertical-align: middle; }
-
-  .badge-estado {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-
-  .badge-pendiente { background: #fff3cd; color: #856404; }
-  .badge-procesando { background: #cce7f7; color: #0a5c99; }
-  .badge-completado { background: #d4edda; color: #155724; }
-  .badge-error { background: #f8d7da; color: #721c24; }
-
-  .monto-credito {
-    font-weight: 700;
-    color: var(--verde);
-    font-size: 1rem;
-  }
-
-  .monto-no-encontrado {
-    color: #999;
-    font-style: italic;
-  }
-
-  .btn-ver {
-    background: none;
-    border: 1px solid var(--azul);
-    color: var(--azul);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.78rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-ver:hover { background: var(--azul); color: white; }
-
-  /* MODAL SCREENSHOT */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  .modal-overlay.visible { display: flex; }
-
-  .modal {
-    background: white;
-    border-radius: 12px;
-    max-width: 900px;
-    width: 100%;
-    max-height: 90vh;
-    overflow: auto;
-  }
-
-  .modal-header {
-    background: var(--azul);
-    color: white;
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-    border-radius: 12px 12px 0 0;
-    position: sticky;
-    top: 0;
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.4rem;
-    cursor: pointer;
-    line-height: 1;
-  }
-
-  .modal-body { padding: 20px; }
-
-  .modal-body img { width: 100%; border-radius: 8px; border: 1px solid var(--gris-borde); }
-
-  .montos-lista {
-    margin-top: 16px;
-    background: var(--gris);
-    border-radius: 8px;
-    padding: 14px;
-  }
-
-  .montos-lista h4 { margin-bottom: 8px; font-size: 0.9rem; color: #555; }
-  .montos-lista ul { list-style: none; }
-  .montos-lista li {
-    padding: 4px 0;
-    font-family: monospace;
-    font-size: 0.88rem;
-    color: var(--texto);
-    border-bottom: 1px dashed var(--gris-borde);
-  }
-
-  .texto-resultado {
-    margin-top: 12px;
-    background: #1a1a2e;
-    color: #a8d8a8;
-    border-radius: 8px;
-    padding: 14px;
-    font-family: monospace;
-    font-size: 0.78rem;
-    max-height: 300px;
-    overflow: auto;
-    white-space: pre-wrap;
-  }
-
-  /* SPINNER */
   @keyframes spin { to { transform: rotate(360deg); } }
-  .spinner {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(1,121,208,.2); border-top-color: var(--azul); border-radius: 50%; animation: spin .8s linear infinite; }
+
+  .tabla-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  thead tr { background: var(--azul); color: white; }
+  thead th { padding: 11px 13px; text-align: left; font-weight: 600; font-size: .8rem; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--borde); transition: background .15s; }
+  tbody tr:hover { background: #f0f7ff; }
+  tbody td { padding: 10px 13px; vertical-align: middle; }
+
+  .badge-e { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 12px; font-size: .76rem; font-weight: 600; }
+  .e-pend { background: #fff3cd; color: #856404; }
+  .e-proc { background: #cce7f7; color: #0a5c99; }
+  .e-ok { background: #d4edda; color: #155724; }
+  .e-err { background: #f8d7da; color: #721c24; }
+  .e-rech { background: #f8d7da; color: #721c24; }
+
+  .monto-ok { font-weight: 700; color: #1a7a3a; font-size: .95rem; }
+  .monto-no { color: #999; font-style: italic; }
+  .monto-rech { font-weight: 700; color: var(--rojo); }
+
+  .detalle-box {
+    font-size: .78rem; color: #555; margin-top: 2px; line-height: 1.4;
   }
 
-  .spinner-azul {
-    border-color: rgba(1,121,208,0.2);
-    border-top-color: var(--azul);
-  }
+  .vacio { text-align: center; padding: 50px 20px; color: #bbb; font-size: .88rem; }
+  .vacio .i { font-size: 2.5rem; margin-bottom: 10px; }
 
-  .procesando-indicator {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    color: var(--azul);
-    font-size: 0.88rem;
-    font-weight: 600;
-    padding: 10px 0;
-  }
-
-  .procesando-indicator.visible { display: flex; }
-
-  .vacio {
-    text-align: center;
-    padding: 60px 20px;
-    color: #aaa;
-    font-size: 0.9rem;
-  }
-
-  .vacio .icono { font-size: 3rem; margin-bottom: 12px; }
-
-  footer {
-    text-align: center;
-    padding: 20px;
-    color: #aaa;
-    font-size: 0.78rem;
-  }
+  footer { text-align: center; padding: 16px; color: #bbb; font-size: .75rem; }
 </style>
 </head>
 <body>
@@ -367,75 +100,54 @@
 <header>
   <div>
     <h1>🚗 Verificador Santander Movilidad</h1>
-    <span>Tutu Automotores · Simulación de créditos automatizada</span>
+    <span>Tutu Automotores · Consulta de créditos vía API</span>
   </div>
-  <div class="badge-online" id="badgeOnline">● Conectado</div>
+  <div class="badge" id="badge">● Conectando...</div>
 </header>
 
 <div class="container">
 
-  <!-- PANEL CARGA -->
   <div class="panel">
     <div class="panel-header">📋 Cargar clientes</div>
     <div class="panel-body">
-      <div class="instrucciones">
-        <strong>Formato CSV:</strong> una línea por cliente con los campos:<br>
-        <code>nombre,apellido,dni,genero,email,codArea,telefono</code><br><br>
-        <strong>Géneros válidos:</strong> <code>masculino</code> · <code>femenino</code> · <code>no binario</code><br>
-        <strong>Email y teléfono son opcionales</strong> (se usan valores por defecto si no se completan)
+      <div class="info-box">
+        <strong>Formato CSV:</strong> <code>nombre,apellido,dni,genero,email,codArea,telefono</code><br>
+        <strong>Géneros:</strong> <code>masculino</code> · <code>femenino</code><br>
+        <strong>Email, codArea y teléfono son opcionales.</strong> La consulta usa el Audi Q5 2019 ($47M) como vehículo de referencia.
       </div>
-      <textarea id="inputClientes" placeholder="abel,fernandez,94659158,masculino,abel@gmail.com,370,4415138
-maria,gonzalez,12345678,femenino,maria@gmail.com,351,5551234
-juan,perez,87654321,masculino,,351,"></textarea>
-      <div class="fila-botones">
-        <button class="btn btn-primary" onclick="iniciarSimulacion()" id="btnSimular">
-          ▶️ Iniciar simulación
-        </button>
-        <button class="btn btn-secundario" onclick="cargarEjemplo()">
-          📄 Cargar ejemplo
-        </button>
-        <button class="btn btn-danger" onclick="limpiarResultados()">
-          🗑️ Limpiar todo
-        </button>
+      <textarea id="txt" placeholder="abel,fernandez,94659158,masculino,abel@gmail.com,370,4415138
+maria,gonzalez,12345678,femenino
+juan,perez,87654321,masculino,juan@mail.com,351,5551234"></textarea>
+      <div class="fila">
+        <button class="btn btn-primary" onclick="iniciar()" id="btnIniciar">▶ Consultar</button>
+        <button class="btn btn-sec" onclick="ejemplo()">📄 Ejemplo</button>
+        <button class="btn btn-red" onclick="limpiar()">🗑 Limpiar</button>
       </div>
     </div>
   </div>
 
-  <!-- PANEL ESTADO -->
   <div class="panel">
     <div class="panel-header">📊 Estado</div>
     <div class="panel-body">
-      <div class="estado-cola">
-        <div class="stat-card">
-          <div class="numero" id="statTotal">0</div>
-          <div class="label">Total</div>
-        </div>
-        <div class="stat-card">
-          <div class="numero" id="statPendientes">0</div>
-          <div class="label">Pendientes</div>
-        </div>
-        <div class="stat-card">
-          <div class="numero" id="statCompletados">0</div>
-          <div class="label">Completados</div>
-        </div>
-        <div class="stat-card">
-          <div class="numero" id="statErrores">0</div>
-          <div class="label">Errores</div>
-        </div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="sTotal">0</div><div class="l">Total</div></div>
+        <div class="stat"><div class="n" id="sAprobados">0</div><div class="l">Aprobados</div></div>
+        <div class="stat"><div class="n" id="sRechazados">0</div><div class="l">Rechazados</div></div>
+        <div class="stat"><div class="n" id="sErrores">0</div><div class="l">Errores</div></div>
+        <div class="stat"><div class="n" id="sPendientes">0</div><div class="l">Pendientes</div></div>
       </div>
-      <div class="procesando-indicator" id="procesandoIndicator">
-        <div class="spinner spinner-azul"></div>
-        <span id="procesandoTexto">Procesando clientes...</span>
+      <div class="procesando" id="procInd">
+        <div class="spinner"></div>
+        <span id="procTxt">Consultando...</span>
       </div>
     </div>
   </div>
 
-  <!-- PANEL RESULTADOS -->
   <div class="panel">
     <div class="panel-header">📈 Resultados</div>
     <div class="panel-body">
-      <div class="tabla-container">
-        <table id="tablaResultados">
+      <div class="tabla-wrap">
+        <table>
           <thead>
             <tr>
               <th>#</th>
@@ -444,19 +156,12 @@ juan,perez,87654321,masculino,,351,"></textarea>
               <th>DNI</th>
               <th>Género</th>
               <th>Estado</th>
-              <th>Monto crédito</th>
-              <th>Detalle</th>
+              <th>Monto TRD (Tasa Fija)</th>
+              <th>Monto UVA</th>
             </tr>
           </thead>
-          <tbody id="tablaBody">
-            <tr>
-              <td colspan="8">
-                <div class="vacio">
-                  <div class="icono">🔍</div>
-                  Cargá clientes y presioná "Iniciar simulación" para comenzar
-                </div>
-              </td>
-            </tr>
+          <tbody id="tbody">
+            <tr><td colspan="8"><div class="vacio"><div class="i">🔍</div>Cargá clientes y presioná Consultar</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -465,241 +170,157 @@ juan,perez,87654321,masculino,,351,"></textarea>
 
 </div>
 
-<!-- MODAL DETALLE -->
-<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <span id="modalTitulo">Detalle del resultado</span>
-      <button class="modal-close" onclick="cerrarModal()">✕</button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
-  </div>
-</div>
-
 <footer>Tutu Automotores · Verificador Santander · Uso interno</footer>
 
 <script>
 const API = window.location.origin;
-let intervaloActualizacion = null;
-const mapaJobs = {}; // jobId -> fila index
+let intervalo = null;
 
-async function iniciarSimulacion() {
-  const texto = document.getElementById('inputClientes').value.trim();
-  if (!texto) {
-    alert('Por favor ingresá los clientes en formato CSV');
-    return;
-  }
+async function iniciar() {
+  const txt = document.getElementById('txt').value.trim();
+  if (!txt) return alert('Ingresá los clientes en formato CSV');
 
-  const lineas = texto.split('\n').filter(l => l.trim());
+  const lineas = txt.split('\n').filter(l => l.trim());
   const clientes = [];
-
-  for (const linea of lineas) {
-    const partes = linea.split(',').map(p => p.trim());
-    if (partes.length < 4) {
-      alert(`Línea inválida: "${linea}"\nFormato: nombre,apellido,dni,genero`);
-      return;
-    }
+  for (const l of lineas) {
+    const p = l.split(',').map(x => x.trim());
+    if (p.length < 4) { alert(`Línea inválida: "${l}"`); return; }
     clientes.push({
-      nombre: partes[0],
-      apellido: partes[1],
-      dni: partes[2],
-      genero: partes[3] || 'masculino',
-      email: partes[4] || 'consulta@tutuautomotores.com',
-      codArea: partes[5] || '351',
-      telefono: partes[6] || '4415138'
+      nombre: p[0], apellido: p[1], dni: p[2], genero: p[3] || 'masculino',
+      email: p[4] || '', codArea: p[5] || '351', telefono: p[6] || '4415138'
     });
   }
 
-  document.getElementById('btnSimular').disabled = true;
-
+  document.getElementById('btnIniciar').disabled = true;
   try {
     const res = await fetch(`${API}/api/simular`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clientes })
     });
-
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
-
-    // Mapear jobs
-    data.jobs.forEach(j => { mapaJobs[j.jobId] = j; });
-
-    // Iniciar polling
-    if (!intervaloActualizacion) {
-      intervaloActualizacion = setInterval(actualizarResultados, 3000);
-    }
-    actualizarResultados();
-
-  } catch (err) {
-    alert('Error al enviar clientes: ' + err.message);
-    document.getElementById('btnSimular').disabled = false;
+    if (!intervalo) intervalo = setInterval(actualizar, 2000);
+    actualizar();
+  } catch(e) {
+    alert('Error: ' + e.message);
+    document.getElementById('btnIniciar').disabled = false;
   }
 }
 
-async function actualizarResultados() {
+async function actualizar() {
   try {
-    const res = await fetch(`${API}/api/resultados`);
-    const datos = await res.json();
-
-    const estadoRes = await fetch(`${API}/api/estado`);
-    const estado = await estadoRes.json();
-
-    renderTabla(datos);
-    actualizarStats(datos, estado);
-
-    // Si no hay nada procesando, detener polling
-    if (!estado.procesando && estado.enCola === 0) {
-      clearInterval(intervaloActualizacion);
-      intervaloActualizacion = null;
-      document.getElementById('btnSimular').disabled = false;
-      document.getElementById('procesandoIndicator').classList.remove('visible');
+    const [r1, r2] = await Promise.all([
+      fetch(`${API}/api/resultados`).then(r => r.json()),
+      fetch(`${API}/api/estado`).then(r => r.json())
+    ]);
+    renderTabla(r1);
+    renderStats(r1, r2);
+    if (!r2.procesando && r2.enCola === 0) {
+      clearInterval(intervalo); intervalo = null;
+      document.getElementById('btnIniciar').disabled = false;
+      document.getElementById('procInd').classList.remove('on');
     }
+  } catch(e) { console.error(e); }
+}
 
-  } catch (err) {
-    console.error('Error al actualizar:', err);
-  }
+function fmt(n) {
+  if (!n) return '—';
+  return '$' + Number(n).toLocaleString('es-AR');
 }
 
 function renderTabla(datos) {
-  const tbody = document.getElementById('tablaBody');
-
-  if (datos.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="vacio"><div class="icono">🔍</div>Sin resultados aún</div></td></tr>`;
+  const tbody = document.getElementById('tbody');
+  if (!datos.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="vacio"><div class="i">🔍</div>Sin datos</div></td></tr>';
     return;
   }
 
   tbody.innerHTML = datos.map((d, i) => {
-    const estadoBadge = {
-      pendiente: '<span class="badge-estado badge-pendiente">⏳ Pendiente</span>',
-      procesando: '<span class="badge-estado badge-procesando"><span class="spinner"></span> Procesando</span>',
-      completado: '<span class="badge-estado badge-completado">✅ Completado</span>',
-      error: '<span class="badge-estado badge-error">❌ Error</span>'
-    }[d.estado] || d.estado;
+    const badges = {
+      pendiente: '<span class="badge-e e-pend">⏳ Pendiente</span>',
+      procesando: '<span class="badge-e e-proc"><span class="spinner" style="width:10px;height:10px;border-width:1.5px"></span> Procesando</span>',
+      completado: d.aprobado
+        ? '<span class="badge-e e-ok">✅ Aprobado</span>'
+        : '<span class="badge-e e-rech">❌ Rechazado</span>',
+      error: '<span class="badge-e e-err">⚠ Error</span>'
+    };
 
-    const monto = d.estado === 'completado'
-      ? (d.montoCredito && d.montoCredito !== 'No encontrado'
-          ? `<span class="monto-credito">${d.montoCredito}</span>`
-          : `<span class="monto-no-encontrado">Sin resultado</span>`)
-      : (d.estado === 'error'
-          ? `<span class="monto-no-encontrado">${d.error?.substring(0, 30) || 'Error'}</span>`
-          : '—');
+    let montoTRD = '—', montoUVA = '—';
 
-    const generoIcono = (d.genero || '').toLowerCase().includes('fem') ? '♀️' 
-      : (d.genero || '').toLowerCase().includes('bin') ? '⚧️' : '♂️';
+    if (d.estado === 'completado') {
+      if (d.aprobado) {
+        montoTRD = `<span class="monto-ok">${fmt(d.montoTRD)}</span><div class="detalle-box">${d.cuotasTRD} cuotas · cuota ${fmt(d.cuotaValorTRD)}</div>`;
+        montoUVA = `<span class="monto-ok">${fmt(d.montoUVA)}</span><div class="detalle-box">${d.cuotasUVA} cuotas</div>`;
+      } else if (d.rechazado) {
+        montoTRD = '<span class="monto-rech">RECHAZADO</span>';
+        montoUVA = '<span class="monto-rech">RECHAZADO</span>';
+      } else {
+        montoTRD = `<span class="monto-no">Estado: ${d.statusCode || '?'}</span>`;
+        montoUVA = '—';
+      }
+    } else if (d.estado === 'error') {
+      montoTRD = `<span class="monto-no" title="${d.error}">${(d.error||'').substring(0,40)}...</span>`;
+    }
 
-    return `
-      <tr>
-        <td style="color:#999;font-size:0.8rem">${i + 1}</td>
-        <td><strong>${d.nombre || ''}</strong></td>
-        <td>${d.apellido || ''}</td>
-        <td style="font-family:monospace">${d.dni || ''}</td>
-        <td>${generoIcono} ${d.genero || ''}</td>
-        <td>${estadoBadge}</td>
-        <td>${monto}</td>
-        <td>
-          ${d.estado !== 'pendiente' ? `<button class="btn-ver" onclick="verDetalle('${d.jobId}')">Ver detalle</button>` : '—'}
-        </td>
-      </tr>
-    `;
+    const genIco = (d.genero||'').toLowerCase().startsWith('f') ? '♀️' : '♂️';
+
+    return `<tr>
+      <td style="color:#999;font-size:.78rem">${i+1}</td>
+      <td><strong>${d.nombre||''}</strong></td>
+      <td>${d.apellido||''}</td>
+      <td style="font-family:monospace">${d.dni||''}</td>
+      <td>${genIco} ${d.genero||''}</td>
+      <td>${badges[d.estado] || d.estado}</td>
+      <td>${montoTRD}</td>
+      <td>${montoUVA}</td>
+    </tr>`;
   }).join('');
 }
 
-function actualizarStats(datos, estado) {
-  document.getElementById('statTotal').textContent = datos.length;
-  document.getElementById('statPendientes').textContent = datos.filter(d => d.estado === 'pendiente' || d.estado === 'procesando').length;
-  document.getElementById('statCompletados').textContent = datos.filter(d => d.estado === 'completado').length;
-  document.getElementById('statErrores').textContent = datos.filter(d => d.estado === 'error').length;
+function renderStats(datos, estado) {
+  document.getElementById('sTotal').textContent = datos.length;
+  document.getElementById('sAprobados').textContent = datos.filter(d => d.aprobado).length;
+  document.getElementById('sRechazados').textContent = datos.filter(d => d.rechazado).length;
+  document.getElementById('sErrores').textContent = datos.filter(d => d.estado === 'error').length;
+  document.getElementById('sPendientes').textContent = datos.filter(d => d.estado === 'pendiente' || d.estado === 'procesando').length;
 
-  const indicator = document.getElementById('procesandoIndicator');
+  const ind = document.getElementById('procInd');
   if (estado.procesando || estado.enCola > 0) {
-    indicator.classList.add('visible');
-    document.getElementById('procesandoTexto').textContent = 
-      `Procesando... (${estado.enCola} en cola)`;
+    ind.classList.add('on');
+    document.getElementById('procTxt').textContent = `Consultando... (${estado.enCola} en cola)`;
   } else {
-    indicator.classList.remove('visible');
+    ind.classList.remove('on');
   }
 }
 
-async function verDetalle(jobId) {
-  const res = await fetch(`${API}/api/resultados/${jobId}`);
-  const data = await res.json();
-
-  document.getElementById('modalTitulo').textContent = 
-    `${data.nombre} ${data.apellido} · DNI ${data.dni}`;
-
-  let html = '';
-
-  if (data.screenshot) {
-    html += `<img src="${data.screenshot}" alt="Captura de pantalla del resultado">`;
-  }
-
-  if (data.todosMontos && data.todosMontos.length > 0) {
-    html += `
-      <div class="montos-lista">
-        <h4>💰 Montos detectados en la página:</h4>
-        <ul>
-          ${data.todosMontos.map(m => `<li>${m}</li>`).join('')}
-        </ul>
-      </div>`;
-  }
-
-  if (data.textoResultado) {
-    html += `
-      <details style="margin-top:12px">
-        <summary style="cursor:pointer;color:var(--azul);font-size:0.85rem">📄 Ver texto completo de la página</summary>
-        <div class="texto-resultado">${data.textoResultado}</div>
-      </details>`;
-  }
-
-  if (data.error) {
-    html += `<div style="background:#f8d7da;border-radius:8px;padding:14px;margin-top:12px;color:#721c24;font-size:0.88rem">
-      <strong>Error:</strong> ${data.error}
-    </div>`;
-  }
-
-  document.getElementById('modalBody').innerHTML = html;
-  document.getElementById('modalOverlay').classList.add('visible');
-}
-
-function cerrarModal(event) {
-  if (!event || event.target === document.getElementById('modalOverlay')) {
-    document.getElementById('modalOverlay').classList.remove('visible');
-  }
-}
-
-async function limpiarResultados() {
-  if (!confirm('¿Limpiar todos los resultados?')) return;
+async function limpiar() {
+  if (!confirm('¿Limpiar todo?')) return;
   await fetch(`${API}/api/resultados`, { method: 'DELETE' });
-  Object.keys(mapaJobs).forEach(k => delete mapaJobs[k]);
-  clearInterval(intervaloActualizacion);
-  intervaloActualizacion = null;
-  document.getElementById('btnSimular').disabled = false;
-  actualizarResultados();
+  clearInterval(intervalo); intervalo = null;
+  document.getElementById('btnIniciar').disabled = false;
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="8"><div class="vacio"><div class="i">🔍</div>Cargá clientes y presioná Consultar</div></td></tr>';
+  document.getElementById('sTotal').textContent = 0;
+  ['sAprobados','sRechazados','sErrores','sPendientes'].forEach(id => document.getElementById(id).textContent = 0);
 }
 
-function cargarEjemplo() {
-  document.getElementById('inputClientes').value = 
-`abel,fernandez,94659158,masculino,abel@tutuautos.com,370,4415138
-maria,gonzalez,12345678,femenino,,351,5551234
-juan,perez,87654321,masculino,,351,`;
+function ejemplo() {
+  document.getElementById('txt').value =
+`abel,fernandez,94659158,masculino,abel@tutu.com,370,4415138
+maria,gonzalez,12345678,femenino
+juan,perez,87654321,masculino`;
 }
 
-// Verificar conexión al iniciar
-async function verificarConexion() {
+// Verificar conexión
+(async () => {
   try {
-    const res = await fetch(`${API}/api/estado`);
-    const data = await res.json();
-    document.getElementById('badgeOnline').textContent = '● Conectado';
-    document.getElementById('badgeOnline').style.background = 'var(--verde)';
-    if (data.totalResultados > 0) actualizarResultados();
-  } catch (e) {
-    document.getElementById('badgeOnline').textContent = '● Desconectado';
-    document.getElementById('badgeOnline').style.background = 'var(--rojo)';
+    await fetch(`${API}/api/estado`);
+    document.getElementById('badge').textContent = '● Conectado';
+    document.getElementById('badge').style.background = '#2dc653';
+  } catch(e) {
+    document.getElementById('badge').textContent = '● Desconectado';
+    document.getElementById('badge').style.background = '#e63946';
   }
-}
-
-verificarConexion();
+})();
 </script>
 </body>
 </html>
