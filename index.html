@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutu · Verificador Santander</title>
+<style>
+  :root {
+    --azul: #0179D0;
+    --azul-oscuro: #005fa3;
+    --rojo: #e63946;
+    --verde: #2dc653;
+    --amarillo: #f4a261;
+    --gris: #f5f7fa;
+    --gris-borde: #dde1e7;
+    --texto: #1a1a2e;
+    --blanco: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--gris);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--azul);
+    color: white;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header span { font-size: 0.85rem; opacity: 0.85; }
+
+  .badge-online {
+    margin-left: auto;
+    background: var(--verde);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+  .panel {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--gris-borde);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    background: var(--azul);
+    color: white;
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-body { padding: 20px; }
+
+  /* CARGA DE CLIENTES */
+  .instrucciones {
+    background: #e8f4fd;
+    border: 1px solid #b3d9f7;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    font-size: 0.88rem;
+    color: #0a5c99;
+  }
+
+  .instrucciones code {
+    background: #cce7f7;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+
+  textarea {
+    width: 100%;
+    height: 200px;
+    border: 1.5px solid var(--gris-borde);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: var(--azul); }
+
+  .fila-botones {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary { background: var(--azul); color: white; }
+  .btn-primary:hover:not(:disabled) { background: var(--azul-oscuro); }
+
+  .btn-secundario { background: var(--gris); color: var(--texto); border: 1px solid var(--gris-borde); }
+  .btn-secundario:hover:not(:disabled) { background: #e0e4ea; }
+
+  .btn-danger { background: var(--rojo); color: white; }
+  .btn-danger:hover:not(:disabled) { background: #c1121f; }
+
+  /* ESTADO DE COLA */
+  .estado-cola {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 120px;
+    background: var(--gris);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid var(--gris-borde);
+  }
+
+  .stat-card .numero {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--azul);
+    line-height: 1;
+  }
+
+  .stat-card .label {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  /* TABLA DE RESULTADOS */
+  .tabla-container { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead tr {
+    background: var(--azul);
+    color: white;
+  }
+
+  thead th {
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--gris-borde);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: #f0f7ff; }
+
+  tbody td { padding: 12px 14px; vertical-align: middle; }
+
+  .badge-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .badge-pendiente { background: #fff3cd; color: #856404; }
+  .badge-procesando { background: #cce7f7; color: #0a5c99; }
+  .badge-completado { background: #d4edda; color: #155724; }
+  .badge-error { background: #f8d7da; color: #721c24; }
+
+  .monto-credito {
+    font-weight: 700;
+    color: var(--verde);
+    font-size: 1rem;
+  }
+
+  .monto-no-encontrado {
+    color: #999;
+    font-style: italic;
+  }
+
+  .btn-ver {
+    background: none;
+    border: 1px solid var(--azul);
+    color: var(--azul);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ver:hover { background: var(--azul); color: white; }
+
+  /* MODAL SCREENSHOT */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.visible { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: auto;
+  }
+
+  .modal-header {
+    background: var(--azul);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    border-radius: 12px 12px 0 0;
+    position: sticky;
+    top: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .modal-body { padding: 20px; }
+
+  .modal-body img { width: 100%; border-radius: 8px; border: 1px solid var(--gris-borde); }
+
+  .montos-lista {
+    margin-top: 16px;
+    background: var(--gris);
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .montos-lista h4 { margin-bottom: 8px; font-size: 0.9rem; color: #555; }
+  .montos-lista ul { list-style: none; }
+  .montos-lista li {
+    padding: 4px 0;
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--texto);
+    border-bottom: 1px dashed var(--gris-borde);
+  }
+
+  .texto-resultado {
+    margin-top: 12px;
+    background: #1a1a2e;
+    color: #a8d8a8;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: monospace;
+    font-size: 0.78rem;
+    max-height: 300px;
+    overflow: auto;
+    white-space: pre-wrap;
+  }
+
+  /* SPINNER */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .spinner-azul {
+    border-color: rgba(1,121,208,0.2);
+    border-top-color: var(--azul);
+  }
+
+  .procesando-indicator {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    color: var(--azul);
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 10px 0;
+  }
+
+  .procesando-indicator.visible { display: flex; }
+
+  .vacio {
+    text-align: center;
+    padding: 60px 20px;
+    color: #aaa;
+    font-size: 0.9rem;
+  }
+
+  .vacio .icono { font-size: 3rem; margin-bottom: 12px; }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: #aaa;
+    font-size: 0.78rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🚗 Verificador Santander Movilidad</h1>
+    <span>Tutu Automotores · Simulación de créditos automatizada</span>
+  </div>
+  <div class="badge-online" id="badgeOnline">● Conectado</div>
+</header>
+
+<div class="container">
+
+  <!-- PANEL CARGA -->
+  <div class="panel">
+    <div class="panel-header">📋 Cargar clientes</div>
+    <div class="panel-body">
+      <div class="instrucciones">
+        <strong>Formato CSV:</strong> una línea por cliente con los campos:<br>
+        <code>nombre,apellido,dni,genero,email,codArea,telefono</code><br><br>
+        <strong>Géneros válidos:</strong> <code>masculino</code> · <code>femenino</code> · <code>no binario</code><br>
+        <strong>Email y teléfono son opcionales</strong> (se usan valores por defecto si no se completan)
+      </div>
+      <textarea id="inputClientes" placeholder="abel,fernandez,94659158,masculino,abel@gmail.com,370,4415138
+maria,gonzalez,12345678,femenino,maria@gmail.com,351,5551234
+juan,perez,87654321,masculino,,351,"></textarea>
+      <div class="fila-botones">
+        <button class="btn btn-primary" onclick="iniciarSimulacion()" id="btnSimular">
+          ▶️ Iniciar simulación
+        </button>
+        <button class="btn btn-secundario" onclick="cargarEjemplo()">
+          📄 Cargar ejemplo
+        </button>
+        <button class="btn btn-danger" onclick="limpiarResultados()">
+          🗑️ Limpiar todo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL ESTADO -->
+  <div class="panel">
+    <div class="panel-header">📊 Estado</div>
+    <div class="panel-body">
+      <div class="estado-cola">
+        <div class="stat-card">
+          <div class="numero" id="statTotal">0</div>
+          <div class="label">Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="numero" id="statPendientes">0</div>
+          <div class="label">Pendientes</div>
+        </div>
+        <div class="stat-card">
+          <div class="numero" id="statCompletados">0</div>
+          <div class="label">Completados</div>
+        </div>
+        <div class="stat-card">
+          <div class="numero" id="statErrores">0</div>
+          <div class="label">Errores</div>
+        </div>
+      </div>
+      <div class="procesando-indicator" id="procesandoIndicator">
+        <div class="spinner spinner-azul"></div>
+        <span id="procesandoTexto">Procesando clientes...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL RESULTADOS -->
+  <div class="panel">
+    <div class="panel-header">📈 Resultados</div>
+    <div class="panel-body">
+      <div class="tabla-container">
+        <table id="tablaResultados">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>DNI</th>
+              <th>Género</th>
+              <th>Estado</th>
+              <th>Monto crédito</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody id="tablaBody">
+            <tr>
+              <td colspan="8">
+                <div class="vacio">
+                  <div class="icono">🔍</div>
+                  Cargá clientes y presioná "Iniciar simulación" para comenzar
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="modalTitulo">Detalle del resultado</span>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<footer>Tutu Automotores · Verificador Santander · Uso interno</footer>
+
+<script>
+const API = window.location.origin;
+let intervaloActualizacion = null;
+const mapaJobs = {}; // jobId -> fila index
+
+async function iniciarSimulacion() {
+  const texto = document.getElementById('inputClientes').value.trim();
+  if (!texto) {
+    alert('Por favor ingresá los clientes en formato CSV');
+    return;
+  }
+
+  const lineas = texto.split('\n').filter(l => l.trim());
+  const clientes = [];
+
+  for (const linea of lineas) {
+    const partes = linea.split(',').map(p => p.trim());
+    if (partes.length < 4) {
+      alert(`Línea inválida: "${linea}"\nFormato: nombre,apellido,dni,genero`);
+      return;
+    }
+    clientes.push({
+      nombre: partes[0],
+      apellido: partes[1],
+      dni: partes[2],
+      genero: partes[3] || 'masculino',
+      email: partes[4] || 'consulta@tutuautomotores.com',
+      codArea: partes[5] || '351',
+      telefono: partes[6] || '4415138'
+    });
+  }
+
+  document.getElementById('btnSimular').disabled = true;
+
+  try {
+    const res = await fetch(`${API}/api/simular`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientes })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    // Mapear jobs
+    data.jobs.forEach(j => { mapaJobs[j.jobId] = j; });
+
+    // Iniciar polling
+    if (!intervaloActualizacion) {
+      intervaloActualizacion = setInterval(actualizarResultados, 3000);
+    }
+    actualizarResultados();
+
+  } catch (err) {
+    alert('Error al enviar clientes: ' + err.message);
+    document.getElementById('btnSimular').disabled = false;
+  }
+}
+
+async function actualizarResultados() {
+  try {
+    const res = await fetch(`${API}/api/resultados`);
+    const datos = await res.json();
+
+    const estadoRes = await fetch(`${API}/api/estado`);
+    const estado = await estadoRes.json();
+
+    renderTabla(datos);
+    actualizarStats(datos, estado);
+
+    // Si no hay nada procesando, detener polling
+    if (!estado.procesando && estado.enCola === 0) {
+      clearInterval(intervaloActualizacion);
+      intervaloActualizacion = null;
+      document.getElementById('btnSimular').disabled = false;
+      document.getElementById('procesandoIndicator').classList.remove('visible');
+    }
+
+  } catch (err) {
+    console.error('Error al actualizar:', err);
+  }
+}
+
+function renderTabla(datos) {
+  const tbody = document.getElementById('tablaBody');
+
+  if (datos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="vacio"><div class="icono">🔍</div>Sin resultados aún</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = datos.map((d, i) => {
+    const estadoBadge = {
+      pendiente: '<span class="badge-estado badge-pendiente">⏳ Pendiente</span>',
+      procesando: '<span class="badge-estado badge-procesando"><span class="spinner"></span> Procesando</span>',
+      completado: '<span class="badge-estado badge-completado">✅ Completado</span>',
+      error: '<span class="badge-estado badge-error">❌ Error</span>'
+    }[d.estado] || d.estado;
+
+    const monto = d.estado === 'completado'
+      ? (d.montoCredito && d.montoCredito !== 'No encontrado'
+          ? `<span class="monto-credito">${d.montoCredito}</span>`
+          : `<span class="monto-no-encontrado">Sin resultado</span>`)
+      : (d.estado === 'error'
+          ? `<span class="monto-no-encontrado">${d.error?.substring(0, 30) || 'Error'}</span>`
+          : '—');
+
+    const generoIcono = (d.genero || '').toLowerCase().includes('fem') ? '♀️' 
+      : (d.genero || '').toLowerCase().includes('bin') ? '⚧️' : '♂️';
+
+    return `
+      <tr>
+        <td style="color:#999;font-size:0.8rem">${i + 1}</td>
+        <td><strong>${d.nombre || ''}</strong></td>
+        <td>${d.apellido || ''}</td>
+        <td style="font-family:monospace">${d.dni || ''}</td>
+        <td>${generoIcono} ${d.genero || ''}</td>
+        <td>${estadoBadge}</td>
+        <td>${monto}</td>
+        <td>
+          ${d.estado !== 'pendiente' ? `<button class="btn-ver" onclick="verDetalle('${d.jobId}')">Ver detalle</button>` : '—'}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function actualizarStats(datos, estado) {
+  document.getElementById('statTotal').textContent = datos.length;
+  document.getElementById('statPendientes').textContent = datos.filter(d => d.estado === 'pendiente' || d.estado === 'procesando').length;
+  document.getElementById('statCompletados').textContent = datos.filter(d => d.estado === 'completado').length;
+  document.getElementById('statErrores').textContent = datos.filter(d => d.estado === 'error').length;
+
+  const indicator = document.getElementById('procesandoIndicator');
+  if (estado.procesando || estado.enCola > 0) {
+    indicator.classList.add('visible');
+    document.getElementById('procesandoTexto').textContent = 
+      `Procesando... (${estado.enCola} en cola)`;
+  } else {
+    indicator.classList.remove('visible');
+  }
+}
+
+async function verDetalle(jobId) {
+  const res = await fetch(`${API}/api/resultados/${jobId}`);
+  const data = await res.json();
+
+  document.getElementById('modalTitulo').textContent = 
+    `${data.nombre} ${data.apellido} · DNI ${data.dni}`;
+
+  let html = '';
+
+  if (data.screenshot) {
+    html += `<img src="${data.screenshot}" alt="Captura de pantalla del resultado">`;
+  }
+
+  if (data.todosMontos && data.todosMontos.length > 0) {
+    html += `
+      <div class="montos-lista">
+        <h4>💰 Montos detectados en la página:</h4>
+        <ul>
+          ${data.todosMontos.map(m => `<li>${m}</li>`).join('')}
+        </ul>
+      </div>`;
+  }
+
+  if (data.textoResultado) {
+    html += `
+      <details style="margin-top:12px">
+        <summary style="cursor:pointer;color:var(--azul);font-size:0.85rem">📄 Ver texto completo de la página</summary>
+        <div class="texto-resultado">${data.textoResultado}</div>
+      </details>`;
+  }
+
+  if (data.error) {
+    html += `<div style="background:#f8d7da;border-radius:8px;padding:14px;margin-top:12px;color:#721c24;font-size:0.88rem">
+      <strong>Error:</strong> ${data.error}
+    </div>`;
+  }
+
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('visible');
+}
+
+function cerrarModal(event) {
+  if (!event || event.target === document.getElementById('modalOverlay')) {
+    document.getElementById('modalOverlay').classList.remove('visible');
+  }
+}
+
+async function limpiarResultados() {
+  if (!confirm('¿Limpiar todos los resultados?')) return;
+  await fetch(`${API}/api/resultados`, { method: 'DELETE' });
+  Object.keys(mapaJobs).forEach(k => delete mapaJobs[k]);
+  clearInterval(intervaloActualizacion);
+  intervaloActualizacion = null;
+  document.getElementById('btnSimular').disabled = false;
+  actualizarResultados();
+}
+
+function cargarEjemplo() {
+  document.getElementById('inputClientes').value = 
+`abel,fernandez,94659158,masculino,abel@tutuautos.com,370,4415138
+maria,gonzalez,12345678,femenino,,351,5551234
+juan,perez,87654321,masculino,,351,`;
+}
+
+// Verificar conexión al iniciar
+async function verificarConexion() {
+  try {
+    const res = await fetch(`${API}/api/estado`);
+    const data = await res.json();
+    document.getElementById('badgeOnline').textContent = '● Conectado';
+    document.getElementById('badgeOnline').style.background = 'var(--verde)';
+    if (data.totalResultados > 0) actualizarResultados();
+  } catch (e) {
+    document.getElementById('badgeOnline').textContent = '● Desconectado';
+    document.getElementById('badgeOnline').style.background = 'var(--rojo)';
+  }
+}
+
+verificarConexion();
+</script>
+</body>
+</html>
